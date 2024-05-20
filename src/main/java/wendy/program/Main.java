@@ -30,7 +30,9 @@ public class Main {
             System.out.print("1.스릴러(약공포) 2.공포 3.상관없음) : ");
             int wantHorror = Integer.parseInt(scan.next());
         } else if (wantGenre == 2) {
-            
+            System.out.print("공포가 아닌 테마를 원하시는 것을 확인했습니다");
+            System.out.print("1.감성 2.코믹 3.판타지 4.잠입 5.상관없음) : ");
+            int wantNotHorror = Integer.parseInt(scan.next());
         }
 
     }

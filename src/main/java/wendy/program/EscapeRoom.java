@@ -1,33 +1,23 @@
 package wendy.program;
 
 public class EscapeRoom {
-    String themename;
-    String themecontent;
+    String region;
     String storename;
 
-    public EscapeRoom(String themename, String themecontent, String storename) {
-        this.themename = themename;
-        this.themecontent = themecontent;
+    public EscapeRoom(String region, String storename) {
+        this.region = region;
         this.storename = storename;
     }
-    public String getThemename() {
-        return themename;
-    }
-
-    public String getThemecontent() {
-        return themecontent;
+    public String getRegion() {
+        return region;
     }
 
     public String getStorename() {
         return storename;
     }
 
-    public void setThemename(String themename) {
-        this.themename = themename;
-    }
-
-    public void setThemecontent(String themecontent) {
-        this.themecontent = themecontent;
+    public void setRegion(String region) {
+        this.region = region;
     }
 
     public void setStorename(String storename) {

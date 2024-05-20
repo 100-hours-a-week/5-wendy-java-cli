@@ -1,12 +1,12 @@
 package wendy.program;
 
-public class SubjectiveDetail extends ThemeDetail{
+public class SubjectiveDetails extends Details {
     int subjectiveDifficulty;
     int starRate;
     int countPlay;
 
-    public SubjectiveDetail(String themename, String themecontent, String storename, String genre, String price, int difficulty, String region, int subjectiveDifficulty, int starRate, int countPlay) {
-        super(themename, themecontent, storename, genre, price, difficulty, region);
+    public SubjectiveDetails(String region, String storename, String themename, String genre, int price, int difficulty, int subjectiveDifficulty, int starRate, int countPlay) {
+        super(region, storename, themename, genre, price, difficulty);
         this.subjectiveDifficulty = subjectiveDifficulty;
         this.starRate = starRate;
         this.countPlay = countPlay;

@@ -29,20 +29,4 @@ public class Details extends EscapeRoom{
     public double getDifficulty() {
         return difficulty;
     }
-
-    public void setThemename(String themename) {
-        this.themename = themename;
-    }
-
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
-    }
-
-    public void setDifficulty(int difficulty) {
-        this.difficulty = difficulty;
-    }
 }

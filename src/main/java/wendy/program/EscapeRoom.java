@@ -15,12 +15,4 @@ public class EscapeRoom {
     public String getStorename() {
         return storename;
     }
-
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public void setStorename(String storename) {
-        this.storename = storename;
-    }
 }

@@ -1,6 +1,6 @@
 package wendy.program;
 
-public class HorrorDetails extends Details{
+public class HorrorDetails extends EscapeRoom {
     double fearIndex;
     public HorrorDetails(String region, String storename, String themename, String genre, int price, double difficulty, double fearIndex) {
         super(region, storename, themename, genre, price, difficulty);

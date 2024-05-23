@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-public class RecommendUtils {
+public class RecommendationUtils {
     public static void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
         List<HorrorDetails> recommendedThemes = new ArrayList<>();
         System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.상관없음 ) : ");

@@ -1,6 +1,6 @@
 package wendy.program;
 
-public class SubjectiveDetails extends Details {
+public class SubjectiveDetails extends EscapeRoom {
     double subjectiveDifficulty;
     double starRate;
     int playMember;

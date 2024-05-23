@@ -6,11 +6,15 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class RecommendationUtils {
+    static int HORROR_RANDOM = 3;
+    static int NOTHORROR_RANDOM = 6;
+    static int WANT_DETAIL = 1;
+
     public static void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
         List<HorrorDetails> recommendedThemes = new ArrayList<>();
         System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.상관없음 ) : ");
         int wantHorror = Integer.parseInt(scan.next());
-        if (wantHorror == 3) {
+        if (wantHorror == HORROR_RANDOM) {
             wantHorror = (int) (Math.random() * 2) + 1;
         }
         switch (wantHorror) {
@@ -19,7 +23,6 @@ public class RecommendationUtils {
                 System.out.println("******스릴러 테마******");
                 for (HorrorDetails thrill : horrorThemes) {
                     if (thrill.getGenre().equals("스릴러") && thrill.getRegion().equals(searchRegion)) {
-//                        System.out.println(thrill.getStorename() + "의 " + thrill.getThemename());
                         recommendedThemes.add(thrill);
                     }
                 }
@@ -29,7 +32,6 @@ public class RecommendationUtils {
                 System.out.println("******공포 테마******");
                 for (HorrorDetails horror : horrorThemes) {
                     if (horror.getGenre().equals("공포") && horror.getRegion().equals(searchRegion)) {
-//                        System.out.println(horror.getStorename() + "의 " + horror.getThemename());
                         recommendedThemes.add(horror);
                     }
                 }
@@ -50,7 +52,7 @@ public class RecommendationUtils {
             System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
             System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
             int moredetail = Integer.parseInt(scan.next());
-            if (moredetail == 1) {
+            if (moredetail == WANT_DETAIL) {
                 System.out.println("----------------------------------");
                 System.out.println("매장 이름: " + recommendedTheme.getStorename());
                 System.out.println("매장 위치: " + recommendedTheme.getRegion());
@@ -67,7 +69,7 @@ public class RecommendationUtils {
         int searchLevel;
         System.out.print("-> 공포 제외 ( 1.동화 2.코믹 3.판타지 4.어드벤처 5.감성 6.상관없음 ) : ");
         int wantNotHorror = Integer.parseInt(scan.next());
-        if (wantNotHorror == 6) {
+        if (wantNotHorror == NOTHORROR_RANDOM) {
             wantNotHorror = (int) (Math.random() * 5) + 1;
         }
         switch (wantNotHorror) {
@@ -110,7 +112,6 @@ public class RecommendationUtils {
         System.out.println("***************추천 테마***************");
         for (SubjectiveDetails theme : themes) {
             if (theme.getGenre().equals(searchTheme) && theme.getRegion().equals(searchRegion) && theme.getPlayMember() == wantPersonnel && searchLevel <= theme.getSubjectiveDifficulty() && theme.getSubjectiveDifficulty() <= searchLevel + 1) {
-//                System.out.println(theme.getStorename() + "의 " + theme.getThemename());
                 recommendedThemes.add(theme);
             }
         }
@@ -127,7 +128,7 @@ public static void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan
         System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
         System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
         int moredetail = Integer.parseInt(scan.next());
-        if (moredetail == 1) {
+        if (moredetail == WANT_DETAIL) {
             System.out.println("----------------------------------");
             System.out.println("매장 이름: " + recommendedTheme.getStorename());
             System.out.println("매장 위치: " + recommendedTheme.getRegion());

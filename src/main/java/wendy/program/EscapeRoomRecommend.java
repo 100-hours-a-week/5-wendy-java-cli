@@ -6,6 +6,11 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class EscapeRoomRecommend {
+    int REGION_RANDOM = 4;
+    int GENRE_RANDOM = 3;
+    int BY_REGION = 1;
+    int PERSONALIZED = 2;
+
     public void process(){
         EscapeRoomData escapeRoomData = getEscapeRoomData();
         Scanner scan = new Scanner(System.in);
@@ -13,9 +18,9 @@ public class EscapeRoomRecommend {
         String name = inputName(scan);
         printInfo(name);
         int recommendType = inputRecommendType(scan);
-        if (recommendType==1) {
+        if (recommendType==BY_REGION) {
             recommendByRegion(scan, name, escapeRoomData.stores());
-        } else if (recommendType==2) {
+        } else if (recommendType==PERSONALIZED) {
             personalizedRecommendation(scan, name, escapeRoomData.horrorThemes(), escapeRoomData.themes());
         }else{
             System.out.println("잘못된 입력입니다. 프로그램을 종료합니다.");
@@ -50,7 +55,7 @@ public class EscapeRoomRecommend {
         System.out.println("---------<지역별 매장 추천>---------");
         System.out.print(name + "님 추천받고 싶은 지역을 선택해주세요. (1.강남 2.건대 3.홍대 4.랜덤) : ");
         int wantRegion = Integer.parseInt(scan.next());
-        if (wantRegion == 4) {
+        if (wantRegion == REGION_RANDOM) {
             wantRegion = (int) (Math.random() * 3) + 1;
         }
         System.out.println();
@@ -100,7 +105,7 @@ public class EscapeRoomRecommend {
         System.out.println("---------<본인 맞춤형 추천>---------");
         System.out.print("원하는 플레이 지역을 선택해주세요. (1.강남 2.건대 3.홍대 4.랜덤) : ");
         int wantRegion = Integer.parseInt(scan.next());
-        if (wantRegion == 4) {
+        if (wantRegion == REGION_RANDOM) {
             wantRegion = (int) (Math.random() * 3) + 1;
         }
         switch (wantRegion) {
@@ -119,7 +124,7 @@ public class EscapeRoomRecommend {
         }
         System.out.print(name + "님 원하는 테마 장르가 있으신가요? (1.공포 2.공포 제외 3.상관없음) : ");
         int wantGenre = Integer.parseInt(scan.next());
-        if (wantGenre == 3) {
+        if (wantGenre == GENRE_RANDOM) {
             wantGenre = (int) (Math.random() * 2) + 1;
         }
         if (wantGenre == 1) {

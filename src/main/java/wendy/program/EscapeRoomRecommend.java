@@ -1,9 +1,6 @@
 package wendy.program;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class EscapeRoomRecommend {
     int REGION_RANDOM = 4;
@@ -44,17 +41,22 @@ public class EscapeRoomRecommend {
     }
 
     private int inputRecommendType(Scanner scan) {
-        System.out.println("원하시는 추천을 선택해주세요");
-        System.out.print("1. 지역별 매장 추천 2. 개인 맞춤형 추천 -> ");
-        int wanttype = Integer.parseInt(scan.next());
-        System.out.println();
-        return wanttype;
+        while (true) {
+            try {
+                System.out.println("원하시는 추천을 선택해주세요");
+                System.out.print("1. 지역별 매장 추천 2. 개인 맞춤형 추천 -> ");
+                return scan.nextInt();
+            } catch (InputMismatchException e) {
+                System.out.println("잘못된 입력입니다. 숫자를 입력해주세요.");
+                scan.next();
+            }
+        }
     }
 
     private void recommendByRegion(Scanner scan, String name, List<EscapeRoomStore> stores) {
         System.out.println("---------<지역별 매장 추천>---------");
         System.out.print(name + "님 추천받고 싶은 지역을 선택해주세요. (1.강남 2.건대 3.홍대 4.랜덤) : ");
-        int wantRegion = Integer.parseInt(scan.next());
+        int wantRegion = getValidatedInput(scan, 1, 4);
         if (wantRegion == REGION_RANDOM) {
             wantRegion = (int) (Math.random() * 3) + 1;
         }
@@ -104,7 +106,7 @@ public class EscapeRoomRecommend {
 
         System.out.println("---------<본인 맞춤형 추천>---------");
         System.out.print("원하는 플레이 지역을 선택해주세요. (1.강남 2.건대 3.홍대 4.랜덤) : ");
-        int wantRegion = Integer.parseInt(scan.next());
+        int wantRegion = getValidatedInput(scan, 1, 4);
         if (wantRegion == REGION_RANDOM) {
             wantRegion = (int) (Math.random() * 3) + 1;
         }
@@ -123,7 +125,7 @@ public class EscapeRoomRecommend {
                 return;
         }
         System.out.print(name + "님 원하는 테마 장르가 있으신가요? (1.공포 2.공포 제외 3.상관없음) : ");
-        int wantGenre = Integer.parseInt(scan.next());
+        int wantGenre = getValidatedInput(scan, 1, 3);
         if (wantGenre == GENRE_RANDOM) {
             wantGenre = (int) (Math.random() * 2) + 1;
         }
@@ -133,6 +135,22 @@ public class EscapeRoomRecommend {
             RecommendationUtils.recommendNonHorror(scan, name, searchRegion, themes);
         }
         System.out.println("감사합니다. 다음에 또 이용해주세요.");
+    }
+
+    private int getValidatedInput(Scanner scan, int min, int max) {
+        while (true) {
+            try {
+                int input = scan.nextInt();
+                if (input >= min && input <= max) {
+                    return input;
+                } else {
+                    System.out.println("잘못된 입력입니다. 보기에 있는 숫자를 입력해주세요.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("잘못된 입력입니다. 숫자를 입력해주세요.");
+                scan.next();
+            }
+        }
     }
 
     public EscapeRoomData getEscapeRoomData() {

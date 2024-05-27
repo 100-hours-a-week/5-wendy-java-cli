@@ -10,6 +10,8 @@ public class RecommendationUtils {
     static int NOTHORROR_RANDOM = 6;
     static int WANT_DETAIL = 1;
 
+
+
     public static void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
         List<HorrorDetails> recommendedThemes = new ArrayList<>();
         System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.상관없음 ) : ");
@@ -119,6 +121,7 @@ public class RecommendationUtils {
             Random random = new Random();
             SubjectiveDetails recommendedTheme = recommendedThemes.get(random.nextInt(recommendedThemes.size()));
             ThemeDetails(recommendedTheme, scan);
+            PayPrice(scan, recommendedTheme, wantPersonnel);
         } else {
             System.out.println("추천할 테마가 없습니다.");
         }
@@ -136,6 +139,26 @@ public static void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan
             System.out.println("난이도: " + recommendedTheme.getDifficulty());
             System.out.println("1인당 가격: " + recommendedTheme.getPrice());
             System.out.println("----------------------------------");
+        }
+    }
+}
+public static void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, int wantPersonnel) {
+    System.out.print("-> 미리 온라인 결제를 진행하시겠습니까? (1: 예, 0: 아니오) : ");
+    int payment = Integer.parseInt(scan.next());
+    if (payment == 1) {
+        System.out.print("가지고 있는 예산을 말해주세요 : ");
+        int budget = Integer.parseInt(scan.next());
+        Bank account = new Bank(budget); // 초기 잔액 설정
+        int peopleCount = wantPersonnel;
+        int playPrice = recommendedTheme.getPrice();
+
+        // 결제 스레드 시작
+        Thread paymentThread = new Thread(new PaymentThread(account, peopleCount, playPrice));
+        paymentThread.start();
+        try {
+            paymentThread.join(); // 결제 스레드가 완료될 때까지 대기
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

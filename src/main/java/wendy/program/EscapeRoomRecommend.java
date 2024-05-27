@@ -41,16 +41,11 @@ public class EscapeRoomRecommend {
     }
 
     private int inputRecommendType(Scanner scan) {
-        while (true) {
-            try {
-                System.out.println("원하시는 추천을 선택해주세요");
-                System.out.print("1. 지역별 매장 추천 2. 개인 맞춤형 추천 -> ");
-                return scan.nextInt();
-            } catch (InputMismatchException e) {
-                System.out.println("잘못된 입력입니다. 숫자를 입력해주세요.");
-                scan.next();
-            }
-        }
+        System.out.println("원하시는 추천을 선택해주세요");
+        System.out.print("1. 지역별 매장 추천 2. 개인 맞춤형 추천 -> ");
+        int wanttype = getValidatedInput(scan, 1, 2);
+        System.out.println();
+        return wanttype;
     }
 
     private void recommendByRegion(Scanner scan, String name, List<EscapeRoomStore> stores) {
@@ -144,10 +139,10 @@ public class EscapeRoomRecommend {
                 if (input >= min && input <= max) {
                     return input;
                 } else {
-                    System.out.println("잘못된 입력입니다. 보기에 있는 숫자를 입력해주세요.");
+                    System.out.print("잘못된 입력입니다. 보기에 있는 숫자를 입력해주세요. ");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("잘못된 입력입니다. 숫자를 입력해주세요.");
+                System.out.print("잘못된 입력입니다. 숫자를 입력해주세요. ");
                 scan.next();
             }
         }

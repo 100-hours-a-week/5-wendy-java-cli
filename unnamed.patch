@@ -1,0 +1,334 @@
+Index: src/main/java/wendy/program/Bank.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/wendy/program/Bank.java b/src/main/java/wendy/program/Bank.java
+--- a/src/main/java/wendy/program/Bank.java	(revision 11d1f1869be64adef30343cbaae8985e003e157e)
++++ b/src/main/java/wendy/program/Bank.java	(revision 1c5e2420f2a063dfc9713e008f35b29416c1d743)
+@@ -2,19 +2,27 @@
+ 
+ public class Bank {
+     int money;
++    private boolean paymentProgress;
++
+     public Bank(int initialmoney) {
+         this.money = initialmoney;
++        this.paymentProgress = false;
++    }
++
++    public synchronized void startPayment() {
++        this.paymentProgress = true;
+     }
+ 
+-    public synchronized void withdraw(int persons, int playPrice) {
+-        if (money >= playPrice*persons) {
+-            for(int i=0; i<persons; i++) {
+-                money -= playPrice;
+-                System.out.println("1명 결제가 완료되었습니다. 잔액: " + money);
+-            }
+-            System.out.println("");
+-        } else {
+-            System.out.println(persons+"명의 금액을 결제할 잔액이 부족합니다. 결제를 진행할 수 없습니다.");
+-        }
++    public synchronized void endPayment() {
++        this.paymentProgress = false;
++
++    }
++
++    public synchronized void withdraw(int playPrice) throws InterruptedException {
++        startPayment();
++        Thread.sleep(500);
++        money -= playPrice;
++        System.out.println("1명 결제가 완료되었습니다. 잔액: " + money);
++        endPayment();
+     }
+ }
+\ No newline at end of file
+Index: src/main/java/wendy/program/EscapeRoomRecommend.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/wendy/program/EscapeRoomRecommend.java b/src/main/java/wendy/program/EscapeRoomRecommend.java
+--- a/src/main/java/wendy/program/EscapeRoomRecommend.java	(revision 11d1f1869be64adef30343cbaae8985e003e157e)
++++ b/src/main/java/wendy/program/EscapeRoomRecommend.java	(revision 1c5e2420f2a063dfc9713e008f35b29416c1d743)
+@@ -124,12 +124,12 @@
+         if (wantGenre == GENRE_RANDOM) {
+             wantGenre = (int) (Math.random() * 2) + 1;
+         }
++        RecommendationUtils recommendationUtils = new RecommendationUtils();
+         if (wantGenre == 1) {
+-            RecommendationUtils.recommendHorror(scan, searchRegion, horrorThemes);
++            recommendationUtils.recommendHorror(scan, searchRegion, horrorThemes);
+         } else if (wantGenre==2){
+-            RecommendationUtils.recommendNonHorror(scan, name, searchRegion, themes);
++            recommendationUtils.recommendNonHorror(scan, name, searchRegion, themes);
+         }
+-        System.out.println("감사합니다. 다음에 또 이용해주세요.");
+     }
+ 
+     private int getValidatedInput(Scanner scan, int min, int max) {
+Index: src/main/java/wendy/program/PaymentThread.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/wendy/program/PaymentThread.java b/src/main/java/wendy/program/PaymentThread.java
+--- a/src/main/java/wendy/program/PaymentThread.java	(revision 11d1f1869be64adef30343cbaae8985e003e157e)
++++ b/src/main/java/wendy/program/PaymentThread.java	(revision 1c5e2420f2a063dfc9713e008f35b29416c1d743)
+@@ -1,18 +1,35 @@
+ package wendy.program;
+ 
+ public class PaymentThread implements Runnable {
+-    private Bank account;
+-    private int persons;
+-    private int playPrice;
++    private RecommendationUtils recommendationUtils;
+ 
+-    public PaymentThread(Bank account, int persons, int playPrice) {
+-        this.account = account;
+-        this.persons = persons;
+-        this.playPrice = playPrice;
++    public PaymentThread(RecommendationUtils recommendationUtils) {
++        this.recommendationUtils = recommendationUtils;
+     }
+ 
+     @Override
+     public void run() {
+-        account.withdraw(persons,playPrice);
+-    }
+-}
++        while (true) {
++            ThreadData data = this.recommendationUtils.getData();
++            if (data != null) {
++                Bank account = data.getAccount();
++                int playPrice = data.getPlayPrice();
++                try {
++                    System.out.println("결제 하는 중...");
++                    account.withdraw(playPrice);
++                } catch (InterruptedException e) {
++                    throw new RuntimeException(e);
++                }
++                this.recommendationUtils.clearData();
++            }
++            try {
++                Thread.sleep(500);
++            } catch (InterruptedException e) {
++                throw new RuntimeException(e);
++            }
++            if (this.recommendationUtils.getFinish()) {
++                break;
++            }
++        }
++    }
++}
+\ No newline at end of file
+Index: src/main/java/wendy/program/RecommendationUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/wendy/program/RecommendationUtils.java b/src/main/java/wendy/program/RecommendationUtils.java
+--- a/src/main/java/wendy/program/RecommendationUtils.java	(revision 11d1f1869be64adef30343cbaae8985e003e157e)
++++ b/src/main/java/wendy/program/RecommendationUtils.java	(revision 1c5e2420f2a063dfc9713e008f35b29416c1d743)
+@@ -6,10 +6,17 @@
+     static int HORROR_RANDOM = 3;
+     static int NOTHORROR_RANDOM = 6;
+     static int WANT_DETAIL = 1;
++    private ThreadData paymentData = null;
++    private boolean finish = false;
+ 
++    public RecommendationUtils() {
++        // 결제 스레드 시작
++        Thread paymentThread = new Thread(new PaymentThread(this));
++        paymentThread.start();
+ 
++    }
+ 
+-    public static void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
++    public void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
+         List<HorrorDetails> recommendedThemes = new ArrayList<>();
+         System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.랜덤 ) : ");
+         int wantHorror = getValidatedInput(scan, 1, 3);
+@@ -46,7 +53,8 @@
+             System.out.println("추천할 매장이 아직 없습니다.");
+         }
+     }
+-    public static void HorrorDetails(HorrorDetails recommendedTheme, Scanner scan){
++
++    public void HorrorDetails(HorrorDetails recommendedTheme, Scanner scan) {
+         if (recommendedTheme != null) {
+             System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
+             System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
+@@ -63,8 +71,8 @@
+         }
+     }
+ 
+-    public static void recommendNonHorror(Scanner scan, String name, String searchRegion, List<SubjectiveDetails> themes) {
+-        String searchTheme ="";
++    public void recommendNonHorror(Scanner scan, String name, String searchRegion, List<SubjectiveDetails> themes) {
++        String searchTheme = "";
+         int searchLevel;
+         System.out.print("-> 공포 제외 ( 1.동화 2.코믹 3.판타지 4.어드벤처 5.감성 6.상관없음 ) : ");
+         int wantNotHorror = getValidatedInput(scan, 1, 6);
+@@ -121,46 +129,76 @@
+             PayPrice(scan, recommendedTheme, wantPersonnel);
+         } else {
+             System.out.println("추천할 테마가 없습니다.");
++            this.finish = true;
++            System.out.println("감사합니다. 다음에 또 이용해주세요.");
+         }
+     }
+-public static void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan){
+-    if (recommendedTheme != null) {
+-        System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
+-        System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
+-        int moredetail = getValidatedInput(scan, 0, 1);
+-        if (moredetail == WANT_DETAIL) {
+-            System.out.println("----------------------------------");
+-            System.out.println("매장 이름: " + recommendedTheme.getStorename());
+-            System.out.println("매장 위치: " + recommendedTheme.getRegion());
+-            System.out.println("테마 이름: " + recommendedTheme.getThemename());
+-            System.out.println("난이도: " + recommendedTheme.getDifficulty());
+-            System.out.println("1인당 가격: " + recommendedTheme.getPrice());
+-            System.out.println("----------------------------------");
+-        }
+-    }
+-}
+-public static void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, int wantPersonnel) {
+-    System.out.print("-> 미리 온라인 결제를 진행하시겠습니까? (1: 예, 0: 아니오) : ");
+-    int payment = getValidatedInput(scan, 0, 1);
+-    if (payment == 1) {
+-        System.out.print("가지고 있는 예산을 말해주세요 : ");
+-        int budget = Integer.parseInt(scan.next());
+-        Bank account = new Bank(budget); // 초기 잔액 설정
+-        int peopleCount = wantPersonnel;
+-        int playPrice = recommendedTheme.getPrice();
++
++    public void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan) {
++        if (recommendedTheme != null) {
++            System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
++            System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
++            int moredetail = getValidatedInput(scan, 0, 1);
++            if (moredetail == WANT_DETAIL) {
++                System.out.println("----------------------------------");
++                System.out.println("매장 이름: " + recommendedTheme.getStorename());
++                System.out.println("매장 위치: " + recommendedTheme.getRegion());
++                System.out.println("테마 이름: " + recommendedTheme.getThemename());
++                System.out.println("난이도: " + recommendedTheme.getDifficulty());
++                System.out.println("1인당 가격: " + recommendedTheme.getPrice());
++                System.out.println("----------------------------------");
++            }
++        }
++    }
++
++    public void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, int wantPersonnel) {
++        System.out.print("-> 미리 온라인 결제를 진행하시겠습니까? (1: 예, 0: 아니오) : ");
++        int payment = getValidatedInput(scan, 0, 1);
++        if (payment == 1) {
++            System.out.print("가지고 있는 예산을 말해주세요 : ");
++            int budget = Integer.parseInt(scan.next());
++            Bank account = new Bank(budget); // 초기 잔액 설정
++            int peopleCount = wantPersonnel;
++            int playPrice = recommendedTheme.getPrice();
+ 
+-        // 결제 스레드 시작
+-        Thread paymentThread = new Thread(new PaymentThread(account, peopleCount, playPrice));
+-        paymentThread.start();
+-        try {
+-            paymentThread.join(); // 결제 스레드가 완료될 때까지 대기
+-        } catch (InterruptedException e) {
+-            e.printStackTrace();
+-        }
+-    }
+-}
++            int peopleIndex = 0;
++            if (budget < peopleCount * playPrice) {
++                System.out.println("잔액이 부족해 결제를 할 수가 없습니다.");
++            } else {
++                while (true) {
++                    if (this.paymentData == null) {
++                        if (peopleIndex >= peopleCount) {
++                            break;
++                        }
++                        this.paymentData = new ThreadData(account, playPrice);
++                        peopleIndex++;
++                    }
++                    try {
++                        Thread.sleep(500);
++                    } catch (InterruptedException e) {
++                        throw new RuntimeException(e);
++                    }
++                }
++            }
++        }
++        this.finish = true;
++        System.out.println("감사합니다. 다음에 또 이용해주세요.");
++    }
+ 
+-    private static int getValidatedInput(Scanner scan, int min, int max) {
++    public ThreadData getData() {
++        return this.paymentData;
++    }
++
++    public void clearData() {
++        this.paymentData = null;
++
++    }
++
++    public boolean getFinish() {
++        return this.finish;
++    }
++
++    private int getValidatedInput(Scanner scan, int min, int max) {
+         while (true) {
+             try {
+                 int input = scan.nextInt();
+@@ -175,5 +213,4 @@
+             }
+         }
+     }
+-
+ }
+Index: src/main/java/wendy/program/ThreadData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/wendy/program/ThreadData.java b/src/main/java/wendy/program/ThreadData.java
+new file mode 100644
+--- /dev/null	(revision 1c5e2420f2a063dfc9713e008f35b29416c1d743)
++++ b/src/main/java/wendy/program/ThreadData.java	(revision 1c5e2420f2a063dfc9713e008f35b29416c1d743)
+@@ -0,0 +1,31 @@
++package wendy.program;
++
++public class ThreadData {
++    Bank account;
++    int playPrice;
++
++    public ThreadData(Bank account, int playPrice) {
++        this.account = account;
++        this.playPrice = playPrice;
++    }
++
++    public int getPlayPrice() {
++        return playPrice;
++    }
++
++    public Bank getAccount() {
++        return account;
++    }
++
++    public void setAccount(Bank account) {
++        this.account = account;
++    }
++
++    public void setPlayPrice(int playPrice) {
++        this.playPrice = playPrice;
++    }
++}
++
++
++
++

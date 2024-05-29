@@ -6,10 +6,17 @@ public class RecommendationUtils {
     static int HORROR_RANDOM = 3;
     static int NOTHORROR_RANDOM = 6;
     static int WANT_DETAIL = 1;
+    private ThreadData paymentData = null;
+    private boolean finish = false;
 
+    public RecommendationUtils() {
+        // 결제 스레드 시작
+        Thread paymentThread = new Thread(new PaymentThread(this));
+        paymentThread.start();
 
+    }
 
-    public static void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
+    public void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
         List<HorrorDetails> recommendedThemes = new ArrayList<>();
         System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.랜덤 ) : ");
         int wantHorror = getValidatedInput(scan, 1, 3);
@@ -46,7 +53,8 @@ public class RecommendationUtils {
             System.out.println("추천할 매장이 아직 없습니다.");
         }
     }
-    public static void HorrorDetails(HorrorDetails recommendedTheme, Scanner scan){
+
+    public void HorrorDetails(HorrorDetails recommendedTheme, Scanner scan) {
         if (recommendedTheme != null) {
             System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
             System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
@@ -63,8 +71,8 @@ public class RecommendationUtils {
         }
     }
 
-    public static void recommendNonHorror(Scanner scan, String name, String searchRegion, List<SubjectiveDetails> themes) {
-        String searchTheme ="";
+    public void recommendNonHorror(Scanner scan, String name, String searchRegion, List<SubjectiveDetails> themes) {
+        String searchTheme = "";
         int searchLevel;
         System.out.print("-> 공포 제외 ( 1.동화 2.코믹 3.판타지 4.어드벤처 5.감성 6.상관없음 ) : ");
         int wantNotHorror = getValidatedInput(scan, 1, 6);
@@ -121,46 +129,76 @@ public class RecommendationUtils {
             PayPrice(scan, recommendedTheme, wantPersonnel);
         } else {
             System.out.println("추천할 테마가 없습니다.");
+            this.finish = true;
+            System.out.println("감사합니다. 다음에 또 이용해주세요.");
         }
     }
-public static void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan){
-    if (recommendedTheme != null) {
-        System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
-        System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
-        int moredetail = getValidatedInput(scan, 0, 1);
-        if (moredetail == WANT_DETAIL) {
-            System.out.println("----------------------------------");
-            System.out.println("매장 이름: " + recommendedTheme.getStorename());
-            System.out.println("매장 위치: " + recommendedTheme.getRegion());
-            System.out.println("테마 이름: " + recommendedTheme.getThemename());
-            System.out.println("난이도: " + recommendedTheme.getDifficulty());
-            System.out.println("1인당 가격: " + recommendedTheme.getPrice());
-            System.out.println("----------------------------------");
-        }
-    }
-}
-public static void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, int wantPersonnel) {
-    System.out.print("-> 미리 온라인 결제를 진행하시겠습니까? (1: 예, 0: 아니오) : ");
-    int payment = getValidatedInput(scan, 0, 1);
-    if (payment == 1) {
-        System.out.print("가지고 있는 예산을 말해주세요 : ");
-        int budget = Integer.parseInt(scan.next());
-        Bank account = new Bank(budget); // 초기 잔액 설정
-        int peopleCount = wantPersonnel;
-        int playPrice = recommendedTheme.getPrice();
 
-        // 결제 스레드 시작
-        Thread paymentThread = new Thread(new PaymentThread(account, peopleCount, playPrice));
-        paymentThread.start();
-        try {
-            paymentThread.join(); // 결제 스레드가 완료될 때까지 대기
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    public void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan) {
+        if (recommendedTheme != null) {
+            System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
+            System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
+            int moredetail = getValidatedInput(scan, 0, 1);
+            if (moredetail == WANT_DETAIL) {
+                System.out.println("----------------------------------");
+                System.out.println("매장 이름: " + recommendedTheme.getStorename());
+                System.out.println("매장 위치: " + recommendedTheme.getRegion());
+                System.out.println("테마 이름: " + recommendedTheme.getThemename());
+                System.out.println("난이도: " + recommendedTheme.getDifficulty());
+                System.out.println("1인당 가격: " + recommendedTheme.getPrice());
+                System.out.println("----------------------------------");
+            }
         }
     }
-}
 
-    private static int getValidatedInput(Scanner scan, int min, int max) {
+    public void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, int wantPersonnel) {
+        System.out.print("-> 미리 온라인 결제를 진행하시겠습니까? (1: 예, 0: 아니오) : ");
+        int payment = getValidatedInput(scan, 0, 1);
+        if (payment == 1) {
+            System.out.print("가지고 있는 예산을 말해주세요 : ");
+            int budget = Integer.parseInt(scan.next());
+            Bank account = new Bank(budget); // 초기 잔액 설정
+            int peopleCount = wantPersonnel;
+            int playPrice = recommendedTheme.getPrice();
+
+            int peopleIndex = 0;
+            if (budget < peopleCount * playPrice) {
+                System.out.println("잔액이 부족해 결제를 할 수가 없습니다.");
+            } else {
+                while (true) {
+                    if (this.paymentData == null) {
+                        if (peopleIndex >= peopleCount) {
+                            break;
+                        }
+                        this.paymentData = new ThreadData(account, playPrice);
+                        peopleIndex++;
+                    }
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        this.finish = true;
+        System.out.println("감사합니다. 다음에 또 이용해주세요.");
+    }
+
+    public ThreadData getData() {
+        return this.paymentData;
+    }
+
+    public void clearData() {
+        this.paymentData = null;
+
+    }
+
+    public boolean getFinish() {
+        return this.finish;
+    }
+
+    private int getValidatedInput(Scanner scan, int min, int max) {
         while (true) {
             try {
                 int input = scan.nextInt();
@@ -175,5 +213,4 @@ public static void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, in
             }
         }
     }
-
 }

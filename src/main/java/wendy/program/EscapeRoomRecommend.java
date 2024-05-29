@@ -124,12 +124,12 @@ public class EscapeRoomRecommend {
         if (wantGenre == GENRE_RANDOM) {
             wantGenre = (int) (Math.random() * 2) + 1;
         }
+        RecommendationUtils recommendationUtils = new RecommendationUtils();
         if (wantGenre == 1) {
-            RecommendationUtils.recommendHorror(scan, searchRegion, horrorThemes);
+            recommendationUtils.recommendHorror(scan, searchRegion, horrorThemes);
         } else if (wantGenre==2){
-            RecommendationUtils.recommendNonHorror(scan, name, searchRegion, themes);
+            recommendationUtils.recommendNonHorror(scan, name, searchRegion, themes);
         }
-        System.out.println("감사합니다. 다음에 또 이용해주세요.");
     }
 
     private int getValidatedInput(Scanner scan, int min, int max) {

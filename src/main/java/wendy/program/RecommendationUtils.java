@@ -1,9 +1,6 @@
 package wendy.program;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class RecommendationUtils {
     static int HORROR_RANDOM = 3;
@@ -14,8 +11,8 @@ public class RecommendationUtils {
 
     public static void recommendHorror(Scanner scan, String searchRegion, List<HorrorDetails> horrorThemes) {
         List<HorrorDetails> recommendedThemes = new ArrayList<>();
-        System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.상관없음 ) : ");
-        int wantHorror = Integer.parseInt(scan.next());
+        System.out.print("-> 공포 ( 1.스릴러(약공포) 2.공포 3.랜덤 ) : ");
+        int wantHorror = getValidatedInput(scan, 1, 3);
         if (wantHorror == HORROR_RANDOM) {
             wantHorror = (int) (Math.random() * 2) + 1;
         }
@@ -53,7 +50,7 @@ public class RecommendationUtils {
         if (recommendedTheme != null) {
             System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
             System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
-            int moredetail = Integer.parseInt(scan.next());
+            int moredetail = getValidatedInput(scan, 0, 1);
             if (moredetail == WANT_DETAIL) {
                 System.out.println("----------------------------------");
                 System.out.println("매장 이름: " + recommendedTheme.getStorename());
@@ -70,7 +67,7 @@ public class RecommendationUtils {
         String searchTheme ="";
         int searchLevel;
         System.out.print("-> 공포 제외 ( 1.동화 2.코믹 3.판타지 4.어드벤처 5.감성 6.상관없음 ) : ");
-        int wantNotHorror = Integer.parseInt(scan.next());
+        int wantNotHorror = getValidatedInput(scan, 1, 6);
         if (wantNotHorror == NOTHORROR_RANDOM) {
             wantNotHorror = (int) (Math.random() * 5) + 1;
         }
@@ -130,7 +127,7 @@ public static void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan
     if (recommendedTheme != null) {
         System.out.println("추천 테마: " + recommendedTheme.getStorename() + "의 " + recommendedTheme.getThemename());
         System.out.print("-> 방탈출의 세부정보를 원하시면 1을 입력해주세요 (원하지 않을 시 0) : ");
-        int moredetail = Integer.parseInt(scan.next());
+        int moredetail = getValidatedInput(scan, 0, 1);
         if (moredetail == WANT_DETAIL) {
             System.out.println("----------------------------------");
             System.out.println("매장 이름: " + recommendedTheme.getStorename());
@@ -144,7 +141,7 @@ public static void ThemeDetails(SubjectiveDetails recommendedTheme, Scanner scan
 }
 public static void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, int wantPersonnel) {
     System.out.print("-> 미리 온라인 결제를 진행하시겠습니까? (1: 예, 0: 아니오) : ");
-    int payment = Integer.parseInt(scan.next());
+    int payment = getValidatedInput(scan, 0, 1);
     if (payment == 1) {
         System.out.print("가지고 있는 예산을 말해주세요 : ");
         int budget = Integer.parseInt(scan.next());
@@ -162,4 +159,21 @@ public static void PayPrice(Scanner scan, SubjectiveDetails recommendedTheme, in
         }
     }
 }
+
+    private static int getValidatedInput(Scanner scan, int min, int max) {
+        while (true) {
+            try {
+                int input = scan.nextInt();
+                if (input >= min && input <= max) {
+                    return input;
+                } else {
+                    System.out.print("잘못된 입력입니다. 보기에 있는 숫자를 입력해주세요. ");
+                }
+            } catch (InputMismatchException e) {
+                System.out.print("잘못된 입력입니다. 숫자를 입력해주세요. ");
+                scan.next();
+            }
+        }
+    }
+
 }
